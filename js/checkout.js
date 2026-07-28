@@ -1,0 +1,6 @@
+(function(){
+  let billing=new URLSearchParams(location.search).get('plan')==='founder'?'founder':'monthly';
+  const plans={monthly:{name:'Aprova360 Pro mensal',trial:'7 dias',today:'R$ 0,00',later:'R$ 19,90/mês'},founder:{name:'Turma fundadora vitalícia',trial:'Não aplicável',today:'R$ 149,00',later:'Sem mensalidade'}};
+  function render(){const p=plans[billing];document.getElementById('checkout-plan').textContent=p.name;document.getElementById('checkout-trial').textContent=p.trial;document.getElementById('checkout-today').textContent=p.today;document.getElementById('checkout-later').textContent=p.later;document.querySelectorAll('[data-billing]').forEach(x=>x.classList.toggle('active',x.dataset.billing===billing))}
+  document.addEventListener('click',event=>{const tab=event.target.closest('[data-billing]');if(tab){billing=tab.dataset.billing;render()}if(event.target.closest('[data-action="start-trial"]')){const end=new Date();end.setDate(end.getDate()+7);AppStorage.save('subscription',{plan:'pro-demo',status:'trial',startedAt:new Date().toISOString(),trialEndsAt:end.toISOString(),billing});Product.notify('Demonstração Pro ativada por 7 dias.');setTimeout(()=>location.href='dashboard.html?trial=1',900)}});render();
+})();

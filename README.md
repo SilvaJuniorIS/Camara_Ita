@@ -1,12 +1,14 @@
-# Projeto Aprovação VUNESP
+# Aprova360
 
-Plataforma estática de estudos para candidatos ao cargo de Agente Administrativo da Câmara Municipal de Itanhaém. Usa HTML5, CSS3 e JavaScript puro, funciona diretamente pelo `index.html` e salva o progresso no `localStorage`.
+Aplicativo PWA de preparação para concursos públicos. A primeira trilha atende candidatos ao cargo de Agente Administrativo da Câmara Municipal de Itanhaém. Usa HTML5, CSS3 e JavaScript puro, pode ser instalado no celular e salva o progresso no `localStorage`.
 
 > As questões são autorais e destinadas a treinamento inspirado no estilo de concursos. Não são questões oficiais da VUNESP.
 
 ## Funcionalidades
 
 - página inicial profissional e painel responsivo;
+- onboarding personalizado, planos comerciais e demonstração Pro;
+- instalação como aplicativo PWA e cache offline;
 - curso modular, progresso e revisões automáticas em 24 horas, 7 e 30 dias;
 - banco com 20+ questões, filtros, correção comentada e caderno de erros;
 - simulados com histórico de resultados;
@@ -27,6 +29,8 @@ python -m http.server 8080
 
 Depois acesse `http://localhost:8080`.
 
+O servidor local é necessário para testar instalação, Service Worker e funcionamento offline.
+
 ## Estrutura
 
 - `*.html`: páginas e shells semânticos;
@@ -36,6 +40,8 @@ Depois acesse `http://localhost:8080`.
 - `js/`: curso, quiz, planner, flashcards, notas, desempenho e Pomodoro;
 - `data/`: curso, questões, flashcards e simulados;
 - `assets/`: imagens, ícones e ilustrações futuras.
+- `manifest.webmanifest` e `sw.js`: instalação e funcionamento offline;
+- `PRODUCT.md`: estratégia comercial e requisitos antes da cobrança real.
 
 ## Adicionar conteúdo
 
@@ -71,7 +77,7 @@ Importe o repositório, escolha **Other** como framework, deixe o build vazio e 
 
 ## Limitações locais
 
-Os dados ficam vinculados ao navegador e dispositivo atuais. Limpar os dados do site remove o progresso; use o backup JSON. Não há login, nuvem, colaboração, notificações push nem banco de dados.
+Os dados ficam vinculados ao navegador e dispositivo atuais. Limpar os dados do site remove o progresso; use o backup JSON. A tela de assinatura é uma demonstração e não processa pagamentos. Não há login, nuvem, colaboração, notificações push nem banco de dados.
 
 ## Evolução recomendada
 

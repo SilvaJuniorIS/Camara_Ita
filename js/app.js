@@ -10,8 +10,16 @@
   };
   function init(){
     applySettings();
+    setupProduct();
     if(page&&$('#app')){$('#app').innerHTML=Navigation.shell(page,pages[page]());Pomodoro?.render();bind();afterRender()}
     else bindLanding();
+  }
+  function setupProduct(){
+    if(!document.querySelector('link[rel="manifest"]')){const link=document.createElement('link');link.rel='manifest';link.href='manifest.webmanifest';document.head.appendChild(link)}
+    if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('PWA indisponível:',error));
+    window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();window.aprovaInstallPrompt=event;document.querySelectorAll('.install-button').forEach(button=>button.hidden=false)});
+    if(new URLSearchParams(location.search).has('welcome'))setTimeout(()=>toast('Seu plano foi criado. Bem-vindo ao Aprova360!','success'),300);
+    if(new URLSearchParams(location.search).has('trial'))setTimeout(()=>toast('Demonstração Pro ativa por 7 dias.','success'),300);
   }
   function bindLanding(){document.querySelectorAll('[data-action="toggle-theme"]').forEach(x=>x.addEventListener('click',toggleTheme))}
   function bind(){
@@ -24,7 +32,17 @@
     $('#note-form')?.addEventListener('submit',e=>{e.preventDefault();Notes.save()});
     $('#settings-form')?.addEventListener('submit',saveSettings);
   }
-  function afterRender(){if(page==='flashcards')Flashcards.init()}
+  function afterRender(){
+    if(page==='flashcards')Flashcards.init();
+    if(page==='dashboard'){
+      const grid=document.querySelector('.welcome-banner + .grid.grid-4');
+      if(grid&&grid.children.length===1){
+        const m=Dashboard.metrics(),p=AppStorage.load('progress');
+        const values=[[`${m.progress}%`,'Progresso do curso','↗'],[`${m.hours}h`,'Horas estudadas','◷'],[m.answered,'Questões respondidas','✓'],[`${m.accuracy}%`,'Média de acertos','◎'],[`${m.streak} dias`,'Sequência de estudos','◆'],[m.reviews,'Revisões pendentes','↻'],['18h30','Meta semanal','□'],[`${p.completedChapters.length}/10`,'Capítulos concluídos','▤']];
+        grid.replaceChildren(...values.map(([value,label,icon])=>{const card=document.createElement('article');card.className='card stat-card';const symbol=document.createElement('span');symbol.className='stat-icon';symbol.textContent=icon;const body=document.createElement('div'),strong=document.createElement('b'),caption=document.createElement('span');strong.textContent=value;caption.textContent=label;body.append(strong,caption);card.append(symbol,body);return card}));
+      }
+    }
+  }
   function click(e){
     const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;
     const handlers={
@@ -39,7 +57,8 @@
       'open-task':()=>$('#task-modal').classList.add('open'),'close-task':()=>$('#task-modal').classList.remove('open'),'task-complete':()=>editTask(Number(id),'concluída'),'task-delete':()=>deleteEntry('schedule',Number(id)),
       'new-note':()=>Notes.open(),'edit-note':()=>Notes.open(id),'close-note':()=>$('#note-modal').classList.remove('open'),'delete-note':()=>deleteEntry('notes',Number(id)),
       'review-complete':()=>editReview(Number(id),'concluída'),'review-delay':()=>delayReview(Number(id)),'review-cancel':()=>editReview(Number(id),'cancelada'),
-      'export-all':()=>download('backup-aprovacao.json',AppStorage.exportAll()),'import-all':()=>$('#backup-input').click(),'reset-all':resetAll
+      'export-all':()=>download('backup-aprova360.json',AppStorage.exportAll()),'import-all':()=>$('#backup-input').click(),'reset-all':resetAll,
+      'install-app':async()=>{if(window.aprovaInstallPrompt){window.aprovaInstallPrompt.prompt();await window.aprovaInstallPrompt.userChoice;window.aprovaInstallPrompt=null}else toast('Use a opção “Instalar aplicativo” do navegador.','success')}
     };handlers[a]?.()
   }
   function change(e){

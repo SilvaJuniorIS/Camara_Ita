@@ -14,6 +14,9 @@
     simulations: [],
     study_sessions: [],
     reflections: {},
+    onboarding: { completed: false, step: 1, exam: 'Câmara de Itanhaém', weeklyHours: 12.5, experience: 'iniciante', goalDate: '' },
+    subscription: { plan: 'free', status: 'active', startedAt: new Date().toISOString(), trialEndsAt: null },
+    product: { installed: false, version: '2.0.0', acceptedTermsAt: null },
     settings: { theme: 'light', fontSize: 'normal', weeklyHours: 18.5, questionGoal: 100, pomodoro: 25, sounds: true, notifications: false, animations: true, confirmDelete: true }
   };
   const clone = value => JSON.parse(JSON.stringify(value));

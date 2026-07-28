@@ -1,0 +1,8 @@
+(function(){
+  let step=1;
+  const form=document.getElementById('onboarding-form'),next=document.getElementById('onboarding-next'),back=document.getElementById('onboarding-back');
+  function show(){document.querySelectorAll('.onboarding-step').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===step));document.querySelectorAll('.step-indicator i').forEach((el,i)=>el.classList.toggle('active',i<step));back.hidden=step===1;back.style.display=step===1?'none':'';next.textContent=step===4?'Criar meu plano →':'Continuar →'}
+  function advance(){if(step===4)return finish();step++;show()}
+  function finish(){const name=document.getElementById('student-name').value.trim(),terms=document.getElementById('terms-check').checked;if(name.length<2)return Product.notify('Informe seu nome para continuar.');if(!terms)return Product.notify('Aceite os termos para criar seu plano.');const hours=form.elements.hours.value==='custom'?12.5:Number(form.elements.hours.value);AppStorage.save('user',{...AppStorage.load('user'),name,createdAt:AppStorage.load('user').createdAt||new Date().toISOString()});AppStorage.save('onboarding',{completed:true,step:4,exam:form.elements.exam.value,weeklyHours:hours,experience:form.elements.experience.value,goalDate:document.getElementById('goal-date').value,completedAt:new Date().toISOString()});AppStorage.update('settings',s=>({...s,weeklyHours:hours}));AppStorage.update('product',p=>({...p,acceptedTermsAt:new Date().toISOString()}));location.href='dashboard.html?welcome=1'}
+  next.addEventListener('click',advance);back.addEventListener('click',()=>{step--;show()});show();
+})();

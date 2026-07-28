@@ -1,0 +1,22 @@
+{
+  "name": "Aprova360 — Estudos para Concursos",
+  "short_name": "Aprova360",
+  "description": "Plano, questões, revisões e desempenho para sua aprovação.",
+  "id": "./",
+  "start_url": "./dashboard.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F7FB",
+  "theme_color": "#102A43",
+  "lang": "pt-BR",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {"src": "assets/icons/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Continuar estudos", "url": "./dashboard.html", "icons": [{"src": "assets/icons/app-icon.svg", "sizes": "any", "type": "image/svg+xml"}]},
+    {"name": "Resolver questões", "url": "./exercicios.html", "icons": [{"src": "assets/icons/app-icon.svg", "sizes": "any", "type": "image/svg+xml"}]},
+    {"name": "Revisões", "url": "./revisoes.html", "icons": [{"src": "assets/icons/app-icon.svg", "sizes": "any", "type": "image/svg+xml"}]}
+  ]
+}
