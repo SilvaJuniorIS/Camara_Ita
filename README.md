@@ -44,6 +44,18 @@ O servidor local é necessário para testar instalação, Service Worker e funci
 - `PRODUCT.md`: estratégia comercial e requisitos antes da cobrança real.
 - `CONTENT.md`: matriz curricular, fontes oficiais e separação entre núcleo do edital e reforço estratégico.
 
+## Base pré-edital VUNESP
+
+`data/platform-data.js` é a fonte única para os 27 cargos/vagas, matriz
+provisória, perfil VUNESP, simulados, legislação, fontes e histórico. Os
+vencimentos por cargo, atribuições e pesos ficam marcados como pendentes até o
+edital oficial.
+
+O importador em `edital.html` lê PDF pesquisável ou pacote JSON, mostra os
+campos detectados para conferência e só aplica a atualização após confirmação.
+As novas áreas são Concurso, Perfil VUNESP, Professor VUNESP, Plano automático,
+Legislação e Atualização do edital.
+
 ## Adicionar conteúdo
 
 ### Capítulos

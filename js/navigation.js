@@ -1,10 +1,13 @@
 (function () {
   'use strict';
   const items = [
-    ['dashboard','Visão geral','◫','dashboard.html'],['curso','Meu curso','▤','curso.html'],
+    ['dashboard','Visão geral','◫','dashboard.html'],['concurso','Concurso','◎','concurso.html'],
+    ['banca','Perfil VUNESP','V','banca.html'],['edital','Atualizar edital','↥','edital.html'],
+    ['curso','Meu curso','▤','curso.html'],['professor','Professor VUNESP','P','professor.html'],
     ['capitulo','Capítulos','☷','capitulo.html?id=1'],['exercicios','Exercícios','✓','exercicios.html'],
     ['simulados','Simulados','◉','simulados.html'],['flashcards','Flashcards','◇','flashcards.html'],
-    ['planner','Planner','□','planner.html'],['revisoes','Revisões','↻','revisoes.html'],
+    ['plano-estudos','Plano automático','◇','plano-estudos.html'],['planner','Planner','□','planner.html'],
+    ['legislacao','Legislação','§','legislacao.html'],['revisoes','Revisões','↻','revisoes.html'],
     ['erros','Caderno de erros','!','caderno-erros.html'],['desempenho','Desempenho','↗','desempenho.html'],
     ['anotacoes','Anotações','✎','anotacoes.html'],['configuracoes','Configurações','⚙','configuracoes.html']
   ];
@@ -12,7 +15,8 @@
     const user = AppStorage.load('user');
     const progress = AppStorage.load('progress');
     const percent = Math.round((progress.completedChapters.length / 10) * 100);
-    const links = items.map(([id,label,icon,href], index) => `${index === 0 || index === 7 || index === 11 ? `<span class="nav-label">${index === 0 ? 'Estudar' : index === 7 ? 'Acompanhar' : 'Sistema'}</span>` : ''}<a class="nav-link ${page === id ? 'active' : ''}" href="${href}"><span class="nav-icon" aria-hidden="true">${icon}</span>${label}</a>`).join('');
+    const sections = { dashboard: 'Concurso', curso: 'Estudar', revisoes: 'Acompanhar', configuracoes: 'Sistema' };
+    const links = items.map(([id,label,icon,href]) => `${sections[id] ? `<span class="nav-label">${sections[id]}</span>` : ''}<a class="nav-link ${page === id ? 'active' : ''}" href="${href}"><span class="nav-icon" aria-hidden="true">${icon}</span>${label}</a>`).join('');
     const subscription = AppStorage.load('subscription', { plan: 'free', status: 'active' });
     const planLabel = subscription.plan === 'free' ? 'Plano gratuito' : subscription.status === 'trial' ? 'Pro em teste' : 'Plano Pro';
     return `<a class="skip-link" href="#main-content">Pular para o conteúdo</a>

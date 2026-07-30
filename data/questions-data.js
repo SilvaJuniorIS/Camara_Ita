@@ -22,5 +22,12 @@
     ['LOG-001','Raciocínio Lógico','Sequências','Na sequência 2, 4, 8, 16, o próximo termo é:',['18.','20.','24.','30.','32.'],4,'Cada termo é o dobro do anterior; 16 × 2 = 32.','Fácil'],
     ['LOG-002','Raciocínio Lógico','Proposições','Se todo protocolo é registrado e este documento é um protocolo, então:',['o documento pode não ser registrado.','o documento é registrado.','nenhum protocolo é registrado.','a premissa é irrelevante.','o documento é necessariamente sigiloso.'],1,'Aplicação direta da regra universal ao caso particular.','Médio']
   ];
-  window.QuestionsData = base.map(q=>({id:q[0],discipline:q[1],topic:q[2],statement:q[3],options:q[4],correct:q[5],comment:q[6],level:q[7],training:true}));
+  window.QuestionsData = base.map((q,index)=>({
+    id:q[0],discipline:q[1],disciplineId:q[1].normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'-'),
+    topic:q[2],topicId:q[2].normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'-'),
+    subtopic:null,statement:q[3],options:q[4],correct:q[5],correctOption:q[5],comment:q[6],level:q[7],
+    year:2026,positionId:'agente-administrativo',position:'Agente Administrativo',
+    organization:'Câmara Municipal de Itanhaém',board:'VUNESP',sourceType:'authorial_training',
+    accuracyPercent:null,averageTimeSeconds:null,tags:['VUNESP','pré-edital'],order:index+1,training:true
+  }));
 })();

@@ -1,8 +1,21 @@
 # Matriz curricular do Aprova360
 
-## Base adotada
+## Situação oficial em 30/07/2026
 
-A implementação usa como referência oficial o Edital nº 01/2017 da Câmara Municipal de Itanhaém, organizado pela Fundação VUNESP, especialmente o conteúdo do cargo de ensino médio **Auxiliar Legislativo**, função administrativa equivalente mais próxima disponível no histórico oficial.
+- Fundação VUNESP contratada no Processo nº 103/2026 e Contrato nº 04/2026.
+- 27 vagas imediatas em 11 cargos, todos com jornada de 40 horas.
+- Prova objetiva com no mínimo 50 questões e pelo menos 60% de conhecimentos específicos.
+- Edital oficial ainda não publicado.
+
+A matriz atual é provisória e separa campos confirmados, estimados e pendentes.
+Remuneração individual, atribuições, pesos e datas não são tratados como
+oficiais antes da importação validada do edital.
+
+## Referência histórica
+
+A implementação usa o Edital nº 01/2017 apenas como referência histórica,
+especialmente o conteúdo do cargo de ensino médio **Auxiliar Legislativo**.
+Ele não substitui o futuro edital de 2026.
 
 Fonte oficial:
 
@@ -17,7 +30,7 @@ O edital-base confirma:
 - Atualidades;
 - Noções de Informática.
 
-## Núcleo confirmado
+## Núcleo da referência histórica
 
 ### Língua Portuguesa
 

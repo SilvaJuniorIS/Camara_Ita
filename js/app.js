@@ -6,7 +6,9 @@
     dashboard:()=>Dashboard.page(),curso:()=>Course.coursePage(),capitulo:()=>Course.chapterPage(),
     exercicios:()=>Quiz.exercisesPage(),simulados:()=>Quiz.simulationsPage(),flashcards:()=>Flashcards.page(),
     planner:()=>Planner.page(),revisoes:()=>Course.reviewsPage(),erros:()=>Quiz.errorsPage(),
-    desempenho:()=>Performance.page(),anotacoes:()=>Notes.page(),configuracoes:settingsPage
+    desempenho:()=>Performance.page(),anotacoes:()=>Notes.page(),configuracoes:settingsPage,
+    concurso:()=>Platform.page(),banca:()=>Platform.boardPage(),professor:()=>Platform.professorPage(),
+    'plano-estudos':()=>Platform.studyPlanPage(),legislacao:()=>Platform.legislationPage(),edital:()=>EditalImporter.page()
   };
   function init(){
     applySettings();
@@ -31,6 +33,7 @@
     $('#task-form')?.addEventListener('submit',saveTask);
     $('#note-form')?.addEventListener('submit',e=>{e.preventDefault();Notes.save()});
     $('#settings-form')?.addEventListener('submit',saveSettings);
+    $('#adaptive-plan-form')?.addEventListener('submit',e=>{e.preventDefault();const plan=Platform.createPlan($('#plan-position').value,Number($('#plan-hours').value),$('#plan-date').value);$('#adaptive-plan-output').innerHTML=Platform.renderPlan(plan);toast('Plano diário e semanal criado.','success')});
   }
   function afterRender(){
     if(page==='flashcards')Flashcards.init();
@@ -41,9 +44,25 @@
         const values=[[`${m.progress}%`,'Progresso do curso','↗'],[`${m.hours}h`,'Horas estudadas','◷'],[m.answered,'Questões respondidas','✓'],[`${m.accuracy}%`,'Média de acertos','◎'],[`${m.streak} dias`,'Sequência de estudos','◆'],[m.reviews,'Revisões pendentes','↻'],['18h30','Meta semanal','□'],[`${p.completedChapters.length}/10`,'Capítulos concluídos','▤']];
         grid.replaceChildren(...values.map(([value,label,icon])=>{const card=document.createElement('article');card.className='card stat-card';const symbol=document.createElement('span');symbol.className='stat-icon';symbol.textContent=icon;const body=document.createElement('div'),strong=document.createElement('b'),caption=document.createElement('span');strong.textContent=value;caption.textContent=label;body.append(strong,caption);card.append(symbol,body);return card}));
       }
+      enhanceDashboard();
     }
   }
+  function enhanceDashboard(){
+    if(document.querySelector('#adaptive-dashboard'))return;
+    const answers=Object.values(AppStorage.load('answers')),groups={};
+    answers.forEach(item=>{groups[item.discipline]??={total:0,correct:0};groups[item.discipline].total++;if(item.correct)groups[item.discipline].correct++});
+    const ranked=Object.entries(groups).map(([name,value])=>({name,accuracy:Math.round(value.correct/value.total*100),total:value.total})).sort((a,b)=>b.accuracy-a.accuracy);
+    const strong=ranked[0],weak=ranked.at(-1),metrics=Dashboard.metrics();
+    const forecast=Math.min(95,Math.round(Number(metrics.accuracy)*.55+Math.min(100,metrics.progress)*.3+Math.min(100,Number(metrics.hours)*2)*.15));
+    const sessions=AppStorage.load('study_sessions'),today=new Date();
+    const heat=Array.from({length:35},(_,index)=>{const date=new Date(today);date.setDate(today.getDate()-34+index);const key=date.toISOString().slice(0,10);const minutes=sessions.filter(item=>item.date?.slice(0,10)===key).reduce((sum,item)=>sum+Number(item.duration||0),0);return `<i title="${date.toLocaleDateString('pt-BR')}: ${minutes} min" style="--heat:${Math.min(1,minutes/120)}"></i>`}).join('');
+    const section=document.createElement('section');section.id='adaptive-dashboard';section.className='grid grid-3';section.style.marginTop='18px';
+    section.innerHTML=`<article class="card"><div class="card-header"><div><h2>Previsão de aprovação</h2><span class="card-subtitle">Estimativa pedagógica, não probabilidade oficial</span></div></div><div class="ring" style="--value:${forecast};margin:auto"><b>${forecast}%</b></div><p class="card-subtitle" style="text-align:center;margin-top:12px">Combina domínio do conteúdo, acertos e horas registradas.</p></article><article class="card"><div class="card-header"><h2>Forças e pontos fracos</h2></div><div class="strength-row"><span class="badge success">Mais forte</span><b>${strong?Navigation.escapeText(strong.name):'Responda questões'}</b><small>${strong?`${strong.accuracy}% em ${strong.total} itens`:'Sem dados suficientes'}</small></div><div class="strength-row"><span class="badge warning">Prioridade</span><b>${weak?Navigation.escapeText(weak.name):'Diagnóstico pendente'}</b><small>${weak?`${weak.accuracy}% em ${weak.total} itens`:'Faça o primeiro simulado'}</small></div></article><article class="card"><div class="card-header"><div><h2>Mapa de calor</h2><span class="card-subtitle">35 dias de atividade</span></div></div><div class="study-heatmap">${heat}</div><p class="card-subtitle" style="margin-top:12px">Quanto mais escuro, maior o tempo estudado.</p></article>`;
+    document.querySelector('.dashboard-layout')?.after(section);
+  }
   function click(e){
+    const teacher=e.target.closest('[data-teacher-action]');if(teacher){Platform.teacherAction(teacher.dataset.teacherAction);return}
+    const edital=e.target.closest('[data-edital-action]');if(edital){const actions={apply:EditalImporter?.apply,cancel:EditalImporter?.cancel,export:EditalImporter?.exportDatabase};actions[edital.dataset.editalAction]?.();return}
     const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;
     const handlers={
       'toggle-menu':()=>document.body.classList.toggle('menu-open'),'close-menu':()=>document.body.classList.remove('menu-open'),
@@ -58,19 +77,22 @@
       'new-note':()=>Notes.open(),'edit-note':()=>Notes.open(id),'close-note':()=>$('#note-modal').classList.remove('open'),'delete-note':()=>deleteEntry('notes',Number(id)),
       'review-complete':()=>editReview(Number(id),'concluída'),'review-delay':()=>delayReview(Number(id)),'review-cancel':()=>editReview(Number(id),'cancelada'),
       'export-all':()=>download('backup-aprova360.json',AppStorage.exportAll()),'import-all':()=>$('#backup-input').click(),'reset-all':resetAll,
+      'import-law':()=>$('#law-input')?.click(),
       'install-app':async()=>{if(window.aprovaInstallPrompt){window.aprovaInstallPrompt.prompt();await window.aprovaInstallPrompt.userChoice;window.aprovaInstallPrompt=null}else toast('Use a opção “Instalar aplicativo” do navegador.','success')}
     };handlers[a]?.()
   }
   function change(e){
+    if(e.target.matches('#edital-file'))EditalImporter.fileSelected(e.target.files[0]);
+    if(e.target.matches('#law-input'))Platform.importLaw(e.target.files[0]).then(()=>{toast('Legislação importada.','success');setTimeout(()=>location.reload(),400)}).catch(error=>toast(error.message,'error'));
     if(e.target.matches('#flash-filter'))Flashcards.filter(e.target.value);
     if(e.target.matches('.error-reason')){const id=Number(e.target.dataset.id);AppStorage.update('errors',x=>x.map(v=>v.id===id?{...v,reason:e.target.value}:v));toast('Classificação atualizada.','success')}
     if(e.target.matches('#backup-input'))importBackup(e.target.files[0]);
-    if(e.target.matches('#filter-discipline,#filter-topic,#filter-level,#filter-status'))filterQuestions();
+    if(e.target.matches('#filter-discipline,#filter-topic,#filter-year,#filter-position,#filter-level,#filter-status'))filterQuestions();
   }
   function input(e){if(e.target.matches('.reflection')){const key=e.target.dataset.key;AppStorage.update('reflections',r=>({...r,[key]:e.target.value}));const s=$('#reflection-status');if(s)s.textContent='Salvo agora ✓'}}
   function completeChapter(id){AppStorage.update('progress',p=>({...p,completedChapters:[...new Set([...p.completedChapters,id])],lastChapter:id}));const title=CourseData.modules[0].chapters[id-1],base=new Date();AppStorage.update('reviews',r=>{const add=[['24 horas',1],['7 dias',7],['30 dias',30]].filter(()=>!r.some(x=>x.chapterId===id)).map(([interval,days],i)=>{const due=new Date(base);due.setDate(due.getDate()+days);return{id:Date.now()+i,chapterId:id,title,interval,due:due.toISOString().slice(0,10),status:'pendente'}});return[...r,...add]});toast('Capítulo concluído e revisões programadas.','success')}
   function favorite(id){AppStorage.update('questions',q=>({...q,[id]:{...(q?.[id]||{}),favorite:!q?.[id]?.favorite}}));toast('Favorito atualizado.','success')}
-  function filterQuestions(){const d=$('#filter-discipline').value,t=$('#filter-topic').value,l=$('#filter-level').value,s=$('#filter-status').value,a=AppStorage.load('answers'),f=AppStorage.load('questions')||{};document.querySelectorAll('.question-card').forEach(card=>{const q=QuestionsData.find(x=>x.id===card.dataset.question);const visible=(!d||q.discipline===d)&&(!t||q.topic===t)&&(!l||q.level===l)&&(!s||(s==='answered'&&a[q.id])||(s==='unanswered'&&!a[q.id])||(s==='wrong'&&a[q.id]&&!a[q.id].correct)||(s==='favorite'&&f[q.id]?.favorite));card.hidden=!visible})}
+  function filterQuestions(){const d=$('#filter-discipline').value,t=$('#filter-topic').value,y=$('#filter-year')?.value,p=$('#filter-position')?.value,l=$('#filter-level').value,s=$('#filter-status').value,a=AppStorage.load('answers'),f=AppStorage.load('questions')||{};document.querySelectorAll('.question-card').forEach(card=>{const q=QuestionsData.find(x=>x.id===card.dataset.question);const visible=(!d||q.discipline===d)&&(!t||q.topic===t)&&(!y||String(q.year)===y)&&(!p||q.position===p)&&(!l||q.level===l)&&(!s||(s==='answered'&&a[q.id])||(s==='unanswered'&&!a[q.id])||(s==='wrong'&&a[q.id]&&!a[q.id].correct)||(s==='favorite'&&f[q.id]?.favorite));card.hidden=!visible})}
   function shuffleQuestions(){const host=$('#question-list');[...host.children].sort(()=>Math.random()-.5).forEach(x=>host.appendChild(x))}
   function editError(id,status){AppStorage.update('errors',x=>x.map(v=>v.id===id?{...v,status}:v));location.reload()}
   function deleteEntry(name,id){if(AppStorage.load('settings').confirmDelete&&!confirm('Deseja excluir este item?'))return;AppStorage.update(name,x=>x.filter(v=>v.id!==id));location.reload()}
