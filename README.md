@@ -42,6 +42,7 @@ O servidor local é necessário para testar instalação, Service Worker e funci
 - `assets/`: imagens, ícones e ilustrações futuras.
 - `manifest.webmanifest` e `sw.js`: instalação e funcionamento offline;
 - `PRODUCT.md`: estratégia comercial e requisitos antes da cobrança real.
+- `CONTENT.md`: matriz curricular, fontes oficiais e separação entre núcleo do edital e reforço estratégico.
 
 ## Adicionar conteúdo
 

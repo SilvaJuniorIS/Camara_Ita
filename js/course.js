@@ -24,3 +24,45 @@
   function heading(t,p){return `<div class="page-heading"><div><span class="eyebrow">Projeto Aprovação</span><h1>${t}</h1><p>${p}</p></div></div>`}function stat(n,l){return `<div class="card stat-card"><span class="stat-icon">↻</span><div><b>${n}</b><span>${l}</span></div></div>`}
   window.Course={coursePage,chapterPage,reviewsPage};
 })();
+
+/* Expansão curricular: módulos por disciplina e capítulos navegáveis. */
+(function(){
+  'use strict';
+  if(!window.SubjectContent || !window.Course) return;
+  if(!document.querySelector('link[href="css/subjects.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='css/subjects.css';document.head.appendChild(style)}
+  const originalChapterPage=window.Course.chapterPage;
+  const completed=()=>AppStorage.load('progress').completedSubjects||[];
+  const escape=value=>Navigation.escapeText(value);
+  const heading=(title,description)=>`<div class="page-heading"><div><span class="eyebrow">Trilha Câmara de Itanhaém</span><h1>${title}</h1><p>${description}</p></div></div>`;
+  function expandedCoursePage(){
+    const done=completed();
+    const progress=AppStorage.load('progress');
+    const modules=CourseData.modules.map(module=>{
+      const isMethod=module.id===0,chapters=module.chapters||[],available=chapters.length>0;
+      const completedCount=isMethod?progress.completedChapters.length:chapters.filter((_,index)=>done.includes(`${module.id}-${index+1}`)).length;
+      const rows=available?chapters.map((title,index)=>{
+        const key=`${module.id}-${index+1}`,href=isMethod?`capitulo.html?id=${index+1}`:`capitulo.html?module=${module.id}&chapter=${index+1}`;
+        const finished=isMethod?progress.completedChapters.includes(index+1):done.includes(key);
+        return `<a class="chapter-row" href="${href}"><span class="chapter-check">${finished?'✓':''}</span><span><b>Capítulo ${index+1}</b> — ${escape(title)}</span><small>${isMethod&&index>1?'Em breve':'Disponível'}</small></a>`;
+      }).join(''):'';
+      return `<article class="module ${module.id===0?'open':''}"><button class="module-header" data-action="toggle-module"><span class="module-number">M${String(module.id).padStart(2,'0')}</span><span class="module-title"><strong>${escape(module.title)}</strong><span>${available?`${chapters.length} capítulos • ${completedCount} concluídos`:'Área integrada da plataforma'}</span></span>${module.edital===true?'<span class="badge success">Núcleo do edital</span>':module.edital===false?'<span class="badge">Reforço estratégico</span>':'<span class="badge success">Método</span>'}<span>⌄</span></button>${available?`<div class="chapter-list">${rows}</div>`:''}</article>`;
+    }).join('');
+    const total=Object.values(SubjectContent).reduce((sum,subject)=>sum+subject.chapters.length,0);
+    return heading('Meu curso',`${total+10} capítulos organizados por prioridade e aderência ao perfil VUNESP.`)+`<div class="card" style="margin-bottom:18px"><div class="card-header"><div><h2>Matriz de preparação</h2><span class="card-subtitle">Núcleo confirmado no edital anterior do cargo equivalente + aprofundamento administrativo recomendado</span></div><span class="badge success">${total} novos capítulos</span></div><div class="flow"><span>Teoria objetiva</span><b>→</b><span>Aplicação no cargo</span><b>→</b><span>Foco VUNESP</span><b>→</b><span>Fixação</span></div></div><section class="module-list">${modules}</section>`;
+  }
+  function subjectChapterPage(moduleId,chapterNumber){
+    const subject=SubjectContent[moduleId],item=subject?.chapters[chapterNumber-1];
+    if(!item) return heading('Conteúdo não encontrado','Volte à página do curso e escolha um capítulo disponível.');
+    const key=`${moduleId}-${chapterNumber}`,isDone=completed().includes(key);
+    return `<article class="chapter-reader"><div class="chapter-hero"><span class="eyebrow light">Módulo ${moduleId} • ${escape(subject.title)} • Capítulo ${chapterNumber}</span><h1>${escape(item.title)}</h1><p>${escape(item.subtitle)}</p><div style="margin-top:16px"><span class="badge ${subject.edital?'success':'warning'}">${subject.edital?'Núcleo confirmado pelo edital-base':'Aprofundamento recomendado'}</span></div></div><div class="chapter-content"><section><h2>1. Conceito essencial</h2><p>${escape(item.concept)}</p></section><section><h2>2. Aplicação no trabalho administrativo</h2><p>${escape(item.application)}</p></section><section><h2>3. Como a VUNESP pode cobrar</h2><p class="callout">${escape(item.trap)}</p></section><section><h2>4. Exemplo comentado</h2><p>${escape(item.example)}</p></section><section><h2>5. Pontos para memorizar</h2><ul class="study-list">${item.points.map(point=>`<li>${escape(point)}</li>`).join('')}</ul></section><section><h2>6. Exercícios de fixação</h2><ol class="practice-list">${item.practice.map(prompt=>`<li><label><input type="checkbox"> <span>${escape(prompt)}</span></label></li>`).join('')}</ol></section><div class="chapter-source-note"><b>Orientação de estudo</b><p>Este capítulo é material autoral. Para legislação, confirme sempre a versão oficial vigente indicada no módulo.</p></div><div class="button-row" style="margin-top:30px"><button class="button ${isDone?'button-secondary':'button-primary'}" data-action="complete-subject-chapter" data-key="${key}" data-title="${escape(item.title)}">${isDone?'✓ Capítulo concluído':'Marcar como concluído'}</button><a class="button button-secondary" href="${chapterNumber<subject.chapters.length?`capitulo.html?module=${moduleId}&chapter=${chapterNumber+1}`:'curso.html'}">${chapterNumber<subject.chapters.length?'Próximo capítulo →':'Voltar ao curso'}</a></div></div></article>`;
+  }
+  window.Course.coursePage=expandedCoursePage;
+  window.Course.chapterPage=function(){const params=new URLSearchParams(location.search),moduleId=Number(params.get('module')||0);return moduleId>0?subjectChapterPage(moduleId,Number(params.get('chapter')||1)):originalChapterPage()};
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-action="complete-subject-chapter"]');if(!button)return;
+    const key=button.dataset.key,[moduleId]=key.split('-').map(Number),subject=SubjectContent[moduleId],base=new Date();
+    AppStorage.update('progress',state=>({...state,completedSubjects:[...new Set([...(state.completedSubjects||[]),key])]}));
+    AppStorage.update('reviews',reviews=>reviews.some(review=>review.subjectKey===key)?reviews:[...reviews,...[['24 horas',1],['7 dias',7],['30 dias',30]].map(([interval,days],index)=>{const due=new Date(base);due.setDate(due.getDate()+days);return{id:Date.now()+index,subjectKey:key,title:button.dataset.title,interval,due:due.toISOString().slice(0,10),status:'pendente',discipline:subject.title}})]);
+    button.className='button button-secondary';button.textContent='✓ Capítulo concluído';window.App?.toast('Capítulo concluído e revisões programadas.','success');
+  });
+})();

@@ -5,9 +5,9 @@ const CORE = [
   './revisoes.html','./desempenho.html','./caderno-erros.html','./anotacoes.html',
   './configuracoes.html','./onboarding.html','./planos.html','./termos.html','./offline.html',
   './manifest.webmanifest','./css/reset.css','./css/variables.css','./css/main.css',
-  './css/components.css','./css/dashboard.css','./css/course.css','./css/product.css',
+  './css/components.css','./css/dashboard.css','./css/course.css','./css/subjects.css','./css/product.css',
   './css/responsive.css','./js/storage.js','./js/navigation.js','./js/app.js',
-  './js/product.js','./js/onboarding.js','./js/checkout.js','./assets/icons/app-icon.svg'
+  './js/product.js','./js/onboarding.js','./js/checkout.js','./data/subject-content.js','./assets/icons/app-icon.svg'
 ];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));

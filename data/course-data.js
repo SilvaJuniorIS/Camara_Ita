@@ -18,3 +18,4 @@ window.CourseData = {
     ['Exercícios de reflexão','Responda aos campos abaixo com sinceridade. Eles serão salvos automaticamente neste dispositivo e servirão como seu contrato pessoal de preparação.']
   ]
 };
+document.write('<script src="data/subject-content.js"><\/script>');

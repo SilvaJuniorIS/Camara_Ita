@@ -6,6 +6,8 @@ const browser = await chromium.launch({
 });
 const paths = [
   'index.html', 'dashboard.html', 'curso.html', 'capitulo.html?id=1',
+  'capitulo.html?module=1&chapter=1', 'capitulo.html?module=4&chapter=3',
+  'capitulo.html?module=8&chapter=4',
   'capitulo.html?id=2', 'exercicios.html', 'simulados.html',
   'flashcards.html', 'planner.html', 'revisoes.html',
   'caderno-erros.html', 'desempenho.html', 'anotacoes.html',
@@ -50,6 +52,12 @@ await interaction.goto('http://127.0.0.1:8080/flashcards.html', { waitUntil: 'ne
 await interaction.locator('[data-action="flip-card"]').click();
 const flipped = await interaction.locator('.flashcard').evaluate(node => node.classList.contains('flipped'));
 const mobileOverflow = await interaction.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+await interaction.goto('http://127.0.0.1:8080/curso.html', { waitUntil: 'networkidle' });
+const expandedSubjectCount = await interaction.locator('.module').count();
+await interaction.goto('http://127.0.0.1:8080/capitulo.html?module=1&chapter=1', { waitUntil: 'networkidle' });
+const subjectHeading = await interaction.locator('h1').textContent();
+await interaction.locator('[data-action="complete-subject-chapter"]').click();
+const subjectCompleted = await interaction.evaluate(() => JSON.parse(localStorage.getItem('aprovacao_progress')).completedSubjects.includes('1-1'));
 await interaction.goto('http://127.0.0.1:8080/onboarding.html', { waitUntil: 'networkidle' });
 await interaction.locator('#onboarding-next').click();
 await interaction.locator('#onboarding-next').click();
@@ -65,7 +73,7 @@ await interaction.waitForURL(/dashboard\.html\?trial=1/);
 const trialStatus = await interaction.evaluate(() => JSON.parse(localStorage.getItem('aprovacao_subscription')).status);
 const manifest = await interaction.request.get('http://127.0.0.1:8080/manifest.webmanifest').then(response => response.json());
 const serviceWorkerStatus = await interaction.request.get('http://127.0.0.1:8080/sw.js').then(response => response.status());
-results.push({ interaction: { feedback, savedReflection, reviewCount, flipped, mobileOverflow, onboardingComplete, trialStatus, manifestName: manifest.name, serviceWorkerStatus, errors: interactionErrors } });
+results.push({ interaction: { feedback, savedReflection, reviewCount, flipped, mobileOverflow, expandedSubjectCount, subjectHeading, subjectCompleted, onboardingComplete, trialStatus, manifestName: manifest.name, serviceWorkerStatus, errors: interactionErrors } });
 await interaction.close();
 await browser.close();
 
